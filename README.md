@@ -17,4 +17,4 @@ REST API request format:
 Example: `http://127.0.0.1:8080//methods?num=5&date=2018-08-09` gets top 5 most called methods for August 9, 2018.
 
 Running the server:
-* Change MongoDB (and/or server) address and port in `src/resources/application.properties`, then run
+* Change MongoDB (and/or server) address and port in `src/main/resources/application.properties`, then run
