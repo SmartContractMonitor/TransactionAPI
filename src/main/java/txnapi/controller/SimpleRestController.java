@@ -14,9 +14,13 @@ public class SimpleRestController {
     private DBHelper dbHelper;
 
     @RequestMapping("/methods")
-    public String getTopMethodForDate(@Param(value = "date") String date, @Param(value = "num") String num) {
+    public String getTopMethodForDate(
+            @Param(value = "date") String date,
+            @Param(value = "endDate") String endDate,
+            @Param(value = "num") String num) {
+
         System.out.println(date + " " + num);
-        String methods = dbHelper.topMethodForDate(date, num);
+        String methods = dbHelper.topMethodForDate(date, endDate, num);
 
         JSONObject response = new JSONObject();
         if (methods.startsWith("Invalid")) {

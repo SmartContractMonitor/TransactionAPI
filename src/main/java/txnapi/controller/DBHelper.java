@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import txnapi.utils.DateUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 @Component
 public class DBHelper {
@@ -17,7 +18,7 @@ public class DBHelper {
     private static final long SECONDS_IN_DAY = 24 * 60 * 60;
 
     @SuppressWarnings("unchecked")
-    public String topMethodForDate(String date, String num) {
+    public String topMethodForDate(String date, String endDate, String num) {
         int topNumber;
 
         try {
@@ -31,7 +32,14 @@ public class DBHelper {
         if (minTimestamp == null)
             return "Invalid date format";
 
-        long maxTimestamp = minTimestamp + SECONDS_IN_DAY;
+        Long endTimestamp;
+        if (endDate == null) {
+            endTimestamp = minTimestamp + SECONDS_IN_DAY;
+        } else {
+            endTimestamp = DateUtils.timestampForDate(endDate);
+            if (endDate == null)
+                return "Invalid end date format";
+        }
 
         String aggregationTemplate = "[  " +
                 "{$match: {decTimestamp: {$gte:%d, $lt:%d}, method:{\"$ne\":null}}}," +
@@ -44,7 +52,7 @@ public class DBHelper {
         String aggregation = String.format(
                 aggregationTemplate,
                 minTimestamp,
-                maxTimestamp,
+                endTimestamp,
                 topNumber);
 
         ArrayList<DBObject> response = (ArrayList<DBObject>) producerTemplate.requestBody(
