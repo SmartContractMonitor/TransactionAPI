@@ -12,7 +12,7 @@ public class DateUtils {
         try {
             Date parsedDate = format.parse(date);
             return parsedDate.getTime() / 1000;
-        } catch (ParseException e) {
+        } catch (ParseException | NullPointerException e) {
             return null;
         }
     }
