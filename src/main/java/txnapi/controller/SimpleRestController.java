@@ -34,6 +34,11 @@ public class SimpleRestController {
 
     }
 
+    /**
+     * Converts database query response to JSON server response.
+     * @param methods database methods array
+     * @return response as JSONArray
+     */
     private JSONArray convertToJSON(String methods) {
         JSONArray raw = new JSONArray(methods);
         JSONArray result = new JSONArray();

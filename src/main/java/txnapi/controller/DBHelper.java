@@ -7,8 +7,10 @@ import org.springframework.stereotype.Component;
 import txnapi.utils.DateUtils;
 
 import java.util.ArrayList;
-import java.util.Date;
 
+/**
+ * Class for working with MongoDB database.
+ */
 @Component
 public class DBHelper {
 
@@ -17,6 +19,13 @@ public class DBHelper {
 
     private static final long SECONDS_IN_DAY = 24 * 60 * 60;
 
+    /**
+     * Queries top N called contract method in given time period.
+     * @param date start date
+     * @param endDate end date
+     * @param num how many top methods to get
+     * @return JSON with result
+     */
     @SuppressWarnings("unchecked")
     public String topMethodForDate(String date, String endDate, String num) {
         int topNumber;
@@ -37,7 +46,7 @@ public class DBHelper {
             endTimestamp = minTimestamp + SECONDS_IN_DAY;
         } else {
             endTimestamp = DateUtils.timestampForDate(endDate);
-            if (endDate == null)
+            if (endTimestamp == null)
                 return "Invalid end date format";
         }
 
