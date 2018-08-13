@@ -19,6 +19,14 @@ public class DBHelper {
 
     private static final long SECONDS_IN_DAY = 24 * 60 * 60;
 
+    private static final String AGGREGATION_TEMPLATE = "[" +
+            "{$match: {decTimestamp: {$gte:%1$d, $lt:%2$d}, method:{\"$ne\":null}}}," +
+            "{$project: {%3$s: 1} }," +
+            "{$group: { _id: \"$%3$s\", count: {$sum:1}}}," +
+            "{$sort: { count: -1}}," +
+            "{$limit: %4$d}" +
+            "]";
+
     /**
      * Queries top N called contract method in given time period.
      * @param date start date
@@ -26,8 +34,31 @@ public class DBHelper {
      * @param num how many top methods to get
      * @return JSON with result
      */
-    @SuppressWarnings("unchecked")
     public String topMethodForDate(String date, String endDate, String num) {
+        return topStatForDate(date, endDate, num, "method");
+    }
+
+    /**
+     * Queries top N called contracts in given time period.
+     * @param date start date
+     * @param endDate end date
+     * @param num how many top contracts to get
+     * @return JSON with result
+     */
+    public String topContractForDate(String date, String endDate, String num) {
+        return topStatForDate(date, endDate, num, "to");
+    }
+
+    /**
+     * Queries top N called stat(either contract or method) in given time period.
+     * @param date start date
+     * @param endDate end date
+     * @param num how many top stats to get
+     * @param stat which stat to get (either "method" or "to")
+     * @return JSON with result
+     */
+    @SuppressWarnings("unchecked")
+    public String topStatForDate(String date, String endDate, String num, String stat) {
         int topNumber;
 
         try {
@@ -50,18 +81,11 @@ public class DBHelper {
                 return "Invalid end date format";
         }
 
-        String aggregationTemplate = "[  " +
-                "{$match: {decTimestamp: {$gte:%d, $lt:%d}, method:{\"$ne\":null}}}," +
-                "{$project: {method: 1} }," +
-                "{$group: { _id: \"$method\", count: {$sum:1}}}," +
-                "{$sort: { count: -1}}," +
-                "{$limit: %d}" +
-                "]";
-
         String aggregation = String.format(
-                aggregationTemplate,
+                AGGREGATION_TEMPLATE,
                 minTimestamp,
                 endTimestamp,
+                stat,
                 topNumber);
 
         ArrayList<DBObject> response = (ArrayList<DBObject>) producerTemplate.requestBody(
@@ -71,5 +95,4 @@ public class DBHelper {
 
         return response.toString();
     }
-
 }

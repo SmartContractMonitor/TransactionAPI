@@ -14,24 +14,48 @@ public class SimpleRestController {
     private DBHelper dbHelper;
 
     @RequestMapping("/methods")
-    public String getTopMethodForDate(
+    public String getTopMethodsForDate(
             @Param(value = "date") String date,
             @Param(value = "endDate") String endDate,
             @Param(value = "num") String num) {
 
-        System.out.println(date + " " + num);
-        String methods = dbHelper.topMethodForDate(date, endDate, num);
+        return getTopStatsForDate(date, endDate, num, "method");
+    }
+
+    @RequestMapping("/contracts")
+    public String getTopContractsForDate(
+            @Param(value = "date") String date,
+            @Param(value = "endDate") String endDate,
+            @Param(value = "num") String num) {
+
+        return getTopStatsForDate(date, endDate, num, "to");
+    }
+
+    /**
+     * Gets list of top stats for a range of dates and wraps it in JSON with result type.
+     * @param date start date or just day
+     * @param endDate end date (optional)
+     * @param num how many top stats to get
+     * @param stat which stat to get (either "method" or "to")
+     * @return JSON with query result
+     */
+    private String getTopStatsForDate(String date, String endDate, String num, String stat) {
+        String stats = dbHelper.topStatForDate(date, endDate, num, stat);
 
         JSONObject response = new JSONObject();
-        if (methods.startsWith("Invalid")) {
-            response.put("error", methods);
+        if (stats.startsWith("Invalid")) {
+            response.put("error", stats);
             response.put("status", "ERROR");
         } else {
-            response.put("result", convertToJSON(methods));
+            response.put("result",
+                    stat.equals("to")
+                            ? convertContractsToJSON(stats)
+                            : convertMethodsToJSON(stats)
+            );
+
             response.put("status", "OK");
         }
         return response.toString();
-
     }
 
     /**
@@ -39,7 +63,7 @@ public class SimpleRestController {
      * @param methods database methods array
      * @return response as JSONArray
      */
-    private JSONArray convertToJSON(String methods) {
+    private JSONArray convertMethodsToJSON(String methods) {
         JSONArray raw = new JSONArray(methods);
         JSONArray result = new JSONArray();
         raw.forEach(object -> {
@@ -51,6 +75,27 @@ public class SimpleRestController {
             result.put(new JSONObject()
                     .put("method", methodName)
                     .put("address", address)
+                    .put("count", count)
+            );
+
+        });
+        return result;
+    }
+
+    /**
+     * Converts database query response to JSON server response.
+     * @param contracts database methods array
+     * @return response as JSONArray
+     */
+    private JSONArray convertContractsToJSON(String contracts) {
+        JSONArray raw = new JSONArray(contracts);
+        JSONArray result = new JSONArray();
+        raw.forEach(object -> {
+            String id = ((JSONObject) object).getString("_id");
+            int count = ((JSONObject) object).getInt("count");
+
+            result.put(new JSONObject()
+                    .put("address", id)
                     .put("count", count)
             );
 
